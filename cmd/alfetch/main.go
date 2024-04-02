@@ -14,5 +14,9 @@ func main() {
 		panic(err)
 	}
 
-	fetcher.Fetch("airports")
+	params := map[string]any{
+		"country_code": "RU",
+	}
+
+	fetcher.Fetch("airports", params)
 }

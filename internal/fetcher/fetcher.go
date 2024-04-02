@@ -8,8 +8,8 @@ import (
 	"strings"
 )
 
-func Fetch(endpoint string) {
-	request := NewRequest(endpoint)
+func Fetch(endpoint string, params map[string]any) {
+	request := NewRequest(endpoint, params)
 
 	res, err := http.Get(buildUrl(request))
 	if err != nil {
@@ -35,5 +35,11 @@ func Fetch(endpoint string) {
 func buildUrl(data *request) string {
 	baseStripped := strings.Trim(data.baseUrl, "/")
 
-	return fmt.Sprintf("%s/%s?api_key=%s", baseStripped, data.endpoint, data.apiKey)
+	// Create string from the map of parameters
+	paramStr := ""
+	for k, v := range data.params {
+		paramStr += fmt.Sprintf("&%s=%s", k, v)
+	}
+
+	return fmt.Sprintf("%s/%s?api_key=%s%s", baseStripped, data.endpoint, data.apiKey, paramStr)
 }
