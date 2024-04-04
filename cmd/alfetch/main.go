@@ -15,7 +15,7 @@ func main() {
 	}
 
 	params := map[string]any{
-		"country_code": "RU",
+		"country_code": "NL",
 	}
 
 	fetcher.Fetch("airports", params)

@@ -1,11 +1,14 @@
 package fetcher
 
 import (
+	"encoding/csv"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"strings"
+	"time"
 )
 
 func Fetch(endpoint string, params map[string]any) {
@@ -26,10 +29,9 @@ func Fetch(endpoint string, params map[string]any) {
 	result := Response{}
 	json.Unmarshal(body, &result)
 
-	for _, v := range result.Response {
-		fmt.Println(v)
-	}
-	fmt.Printf("Total: %d\n", len(result.Response))
+	writeToFile(result.Response)
+
+	fmt.Printf("Done. Total records written: %d\n", len(result.Response))
 }
 
 func buildUrl(data *request) string {
@@ -42,4 +44,22 @@ func buildUrl(data *request) string {
 	}
 
 	return fmt.Sprintf("%s/%s?api_key=%s%s", baseStripped, data.endpoint, data.apiKey, paramStr)
+}
+
+func writeToFile(airports []Airport) {
+	currentTime := time.Now().Format("02-01-2006-150405")
+
+	file, err := os.Create(fmt.Sprintf("export_%s.csv", currentTime))
+	if err != nil {
+		panic(err)
+	}
+	defer file.Close()
+
+	writer := csv.NewWriter(file)
+	defer writer.Flush()
+	for _, v := range airports {
+		writer.Write(v.toStringSlice())
+	}
+
+	fmt.Printf("Writing to file %s\n", file.Name())
 }

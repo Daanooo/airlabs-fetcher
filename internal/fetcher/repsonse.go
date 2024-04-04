@@ -57,12 +57,5 @@ type Response struct {
 			} `json:"karma"`
 		} `json:"client"`
 	} `json:"request"`
-	Response []struct {
-		Name        string  `json:"name"`
-		IataCode    any     `json:"iata_code"`
-		IcaoCode    string  `json:"icao_code"`
-		Lat         float64 `json:"lat"`
-		Lng         float64 `json:"lng"`
-		CountryCode string  `json:"country_code"`
-	} `json:"response"`
+	Response []Airport `json:"response"`
 }
