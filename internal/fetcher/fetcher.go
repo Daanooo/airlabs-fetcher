@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-func Fetch(endpoint string, params map[string]any) {
+func Fetch(endpoint string, params []string) []Airport {
 	request := NewRequest(endpoint, params)
 
 	res, err := http.Get(buildUrl(request))
@@ -29,29 +29,24 @@ func Fetch(endpoint string, params map[string]any) {
 	result := Response{}
 	json.Unmarshal(body, &result)
 
-	writeToFile(result.Response)
-
-	fmt.Printf("Done. Total records written: %d\n", len(result.Response))
+	return result.Response
 }
 
-func buildUrl(data *request) string {
-	baseStripped := strings.Trim(data.baseUrl, "/")
-
-	// Create string from the map of parameters
-	paramStr := ""
-	for k, v := range data.params {
-		paramStr += fmt.Sprintf("&%s=%s", k, v)
-	}
-
-	return fmt.Sprintf("%s/%s?api_key=%s%s", baseStripped, data.endpoint, data.apiKey, paramStr)
-}
-
-func writeToFile(airports []Airport) {
+func MakeExport(airports []Airport, fileName string) error {
 	currentTime := time.Now().Format("02-01-2006-150405")
 
-	file, err := os.Create(fmt.Sprintf("export_%s.csv", currentTime))
+	if fileName == "" {
+		fileName = fmt.Sprintf("export_%s.csv", currentTime)
+	}
+
+	// Don't proceed with the export if the file already exists to avoid losing data unintentionally
+	if _, err := os.Stat(fileName); err == nil {
+		return fmt.Errorf("file %s already exists, not overwriting", fileName)
+	}
+
+	file, err := os.Create(fileName)
 	if err != nil {
-		panic(err)
+		return fmt.Errorf("MakeExport(), os.Create(%s) failed with %s", fileName, err)
 	}
 	defer file.Close()
 
@@ -61,5 +56,14 @@ func writeToFile(airports []Airport) {
 		writer.Write(v.toStringSlice())
 	}
 
-	fmt.Printf("Writing to file %s\n", file.Name())
+	fmt.Printf("%d lines written to %s\n", len(airports), file.Name())
+
+	return nil
+}
+
+func buildUrl(data *request) string {
+	baseStripped := strings.Trim(data.baseUrl, "/")
+	paramStr := strings.Join(data.params, "&")
+
+	return fmt.Sprintf("%s/%s?api_key=%s&%s", baseStripped, data.endpoint, data.apiKey, paramStr)
 }
